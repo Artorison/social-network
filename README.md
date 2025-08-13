@@ -1,8 +1,8 @@
 # Запуск
 
-Запуск через скрипт start.sh
+Запуск через `docker compose up -d --build`
 
-или 
+или
 
 ```bash
 make start
