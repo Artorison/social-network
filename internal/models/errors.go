@@ -5,7 +5,8 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"redditclone/pkg/logger"
+
+	"github.com/Artorison/social-network/pkg/logger"
 )
 
 var (

@@ -34,6 +34,8 @@ func NewSlogLogger(level slog.Level, logsType LogsType) *Logger {
 	switch logsType {
 	case JSONLogs:
 		handler = slog.NewJSONHandler(os.Stdout, opts)
+	case TEXTLogs:
+		handler = slog.NewTextHandler(os.Stdout, opts)
 	default:
 		handler = slog.NewTextHandler(os.Stdout, opts)
 	}

@@ -2,8 +2,9 @@ package users
 
 import (
 	"context"
-	"redditclone/internal/models"
-	"redditclone/internal/sessions"
+
+	"github.com/Artorison/social-network/internal/models"
+	"github.com/Artorison/social-network/internal/sessions"
 )
 
 type UsersRepo interface {

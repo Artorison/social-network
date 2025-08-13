@@ -2,7 +2,8 @@ package users
 
 import (
 	"context"
-	"redditclone/pkg/logger"
+
+	"github.com/Artorison/social-network/pkg/logger"
 )
 
 type UsersService interface {

@@ -10,9 +10,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"redditclone/internal/models"
-	"redditclone/pkg/logger"
-
+	"github.com/Artorison/social-network/internal/models"
+	"github.com/Artorison/social-network/pkg/logger"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -165,7 +164,6 @@ func TestHandlerRegister(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 			tc.mockExpect()
 			rec := tc.recorder()
 
@@ -310,7 +308,6 @@ func TestHandlerLogin(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 			tc.mockExpect()
 			rec := tc.recorder()
 

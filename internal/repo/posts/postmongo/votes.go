@@ -5,17 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"redditclone/internal/models"
 	"slices"
 
+	"github.com/Artorison/social-network/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func (r *PostMongoDB) ChangeVote(ctx context.Context, postID primitive.ObjectID,
-	vote *models.Vote) (*models.Post, error) {
-
+	vote *models.Vote,
+) (*models.Post, error) {
 	var post models.Post
 	if err := r.Posts.FindOne(ctx, bson.M{"_id": postID}).Decode(&post); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -62,8 +62,8 @@ func (r *PostMongoDB) ChangeVote(ctx context.Context, postID primitive.ObjectID,
 }
 
 func (r *PostMongoDB) UnVote(ctx context.Context, postID primitive.ObjectID,
-	userID string) (*models.Post, error) {
-
+	userID string,
+) (*models.Post, error) {
 	var post models.Post
 	if err := r.Posts.FindOne(ctx, bson.M{"_id": postID}).Decode(&post); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {

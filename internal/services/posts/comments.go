@@ -3,20 +3,24 @@ package posts
 import (
 	"context"
 	"fmt"
-	"redditclone/internal/models"
-	"redditclone/internal/sessions"
-	"redditclone/pkg/helpers"
 
+	"github.com/Artorison/social-network/internal/models"
+	"github.com/Artorison/social-network/internal/sessions"
+	"github.com/Artorison/social-network/pkg/helpers"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (s *PostService) AddComment(ctx context.Context, postID string, commentMsg string, ss *sessions.Session) (*models.Post, error) {
-
+func (s *PostService) AddComment(
+	ctx context.Context,
+	postID string,
+	commentMsg string,
+	ss *sessions.Session,
+) (*models.Post, error) {
 	postObjID, err := primitive.ObjectIDFromHex(postID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid postID: %w", err)
 	}
-	var comment = models.Comment{
+	comment := models.Comment{
 		Created: helpers.GetTime(),
 		Author:  ss.User,
 		Body:    commentMsg,
@@ -32,7 +36,6 @@ func (s *PostService) AddComment(ctx context.Context, postID string, commentMsg 
 }
 
 func (s *PostService) DeleteComment(ctx context.Context, postID, commentID string) (*models.Post, error) {
-
 	pID, err := primitive.ObjectIDFromHex(postID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid postID: %w", err)

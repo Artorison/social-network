@@ -11,10 +11,10 @@ package posts
 
 import (
 	context "context"
-	models "redditclone/internal/models"
-	sessions "redditclone/internal/sessions"
 	reflect "reflect"
 
+	models "github.com/Artorison/social-network/internal/models"
+	sessions "github.com/Artorison/social-network/internal/sessions"
 	gomock "go.uber.org/mock/gomock"
 )
 

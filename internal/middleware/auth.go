@@ -3,17 +3,16 @@ package middleware
 import (
 	"fmt"
 	"net/http"
-	"redditclone/internal/models"
-	"redditclone/internal/sessions"
 	"strings"
 
+	"github.com/Artorison/social-network/internal/models"
+	"github.com/Artorison/social-network/internal/sessions"
 	"github.com/gorilla/mux"
 )
 
 func Auth(sm sessions.SessionManager) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 			token, err := getBearerFromHeader(r.Header.Get("Authorization"))
 			if err != nil {
 				models.JSONError(w, http.StatusUnauthorized, err.Error())

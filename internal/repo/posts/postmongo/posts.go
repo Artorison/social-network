@@ -3,8 +3,8 @@ package postmongo
 import (
 	"context"
 	"fmt"
-	"redditclone/internal/models"
 
+	"github.com/Artorison/social-network/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -19,10 +19,8 @@ func (r *PostMongoDB) CreatePost(ctx context.Context, post *models.Post) error {
 }
 
 func (r *PostMongoDB) GetAllPosts(ctx context.Context) ([]*models.Post, error) {
-
 	findOpts := options.Find().SetSort(bson.D{{Key: "score", Value: -1}})
 	cursor, err := r.Posts.Find(ctx, bson.D{}, findOpts)
-
 	if err != nil {
 		return nil, fmt.Errorf("find post: %w", err)
 	}
@@ -46,8 +44,8 @@ func (r *PostMongoDB) GetAllPosts(ctx context.Context) ([]*models.Post, error) {
 }
 
 func (r *PostMongoDB) GetPostByID(ctx context.Context, postID primitive.ObjectID) (
-	*models.Post, error) {
-
+	*models.Post, error,
+) {
 	var post models.Post
 
 	findFilter := bson.M{"_id": postID}
@@ -68,11 +66,9 @@ func (r *PostMongoDB) GetPostByID(ctx context.Context, postID primitive.ObjectID
 }
 
 func (r *PostMongoDB) GetPostsByCategory(ctx context.Context, category string) ([]*models.Post, error) {
-
 	findFilter := bson.M{"category": category}
 	findOpts := options.Find().SetSort(bson.D{{Key: "score", Value: -1}})
 	cursor, err := r.Posts.Find(ctx, findFilter, findOpts)
-
 	if err != nil {
 		return nil, fmt.Errorf("find post: %w", err)
 	}
@@ -91,7 +87,6 @@ func (r *PostMongoDB) GetPostsByCategory(ctx context.Context, category string) (
 }
 
 func (r *PostMongoDB) DeletePost(ctx context.Context, postID primitive.ObjectID) error {
-
 	if _, err := r.Posts.DeleteOne(ctx, bson.M{"_id": postID}); err != nil {
 		return fmt.Errorf("delete one: %w", err)
 	}
@@ -100,11 +95,9 @@ func (r *PostMongoDB) DeletePost(ctx context.Context, postID primitive.ObjectID)
 }
 
 func (r *PostMongoDB) GetUsersPosts(ctx context.Context, username string) ([]*models.Post, error) {
-
 	findFilter := bson.D{{Key: "author.username", Value: username}}
 	findOpts := options.Find().SetSort(bson.D{{Key: "score", Value: -1}})
 	cursor, err := r.Posts.Find(ctx, findFilter, findOpts)
-
 	if err != nil {
 		return nil, fmt.Errorf("find post: %w", err)
 	}

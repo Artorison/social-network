@@ -3,14 +3,14 @@ package posts
 import (
 	"context"
 	"fmt"
-	"redditclone/internal/models"
-	"redditclone/internal/sessions"
 
+	"github.com/Artorison/social-network/internal/models"
+	"github.com/Artorison/social-network/internal/sessions"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (s *PostService) UpVote(ctx context.Context, postID string, ss *sessions.Session) (*models.Post, error) {
-	var vote = models.Vote{
+	vote := models.Vote{
 		Vote:   1,
 		UserID: ss.User.ID,
 	}
@@ -23,7 +23,7 @@ func (s *PostService) UpVote(ctx context.Context, postID string, ss *sessions.Se
 }
 
 func (s *PostService) DownVote(ctx context.Context, postID string, ss *sessions.Session) (*models.Post, error) {
-	var vote = models.Vote{
+	vote := models.Vote{
 		Vote:   -1,
 		UserID: ss.User.ID,
 	}
@@ -36,7 +36,6 @@ func (s *PostService) DownVote(ctx context.Context, postID string, ss *sessions.
 }
 
 func (s *PostService) UnVote(ctx context.Context, postID string, ss *sessions.Session) (*models.Post, error) {
-
 	pID, err := primitive.ObjectIDFromHex(postID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid postID: %w", err)

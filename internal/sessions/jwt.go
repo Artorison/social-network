@@ -3,9 +3,9 @@ package sessions
 import (
 	"fmt"
 	"log/slog"
-	"redditclone/internal/models"
 	"time"
 
+	"github.com/Artorison/social-network/internal/models"
 	"github.com/golang-jwt/jwt/v5"
 )
 

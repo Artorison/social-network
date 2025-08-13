@@ -4,10 +4,10 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"redditclone/internal/models"
-	"redditclone/internal/sessions"
-	"redditclone/pkg/logger"
 
+	"github.com/Artorison/social-network/internal/models"
+	"github.com/Artorison/social-network/internal/sessions"
+	"github.com/Artorison/social-network/pkg/logger"
 	"github.com/gorilla/mux"
 )
 

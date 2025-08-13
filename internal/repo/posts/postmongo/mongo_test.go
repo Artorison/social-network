@@ -3,10 +3,10 @@ package postmongo
 import (
 	"context"
 	"errors"
-	"redditclone/internal/models"
-	"redditclone/pkg/helpers"
 	"testing"
 
+	"github.com/Artorison/social-network/internal/models"
+	"github.com/Artorison/social-network/pkg/helpers"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -98,7 +98,6 @@ func TestAddComment(t *testing.T) {
 		err := postMongoDB.AddCom(context.Background(), newDummyComment())
 
 		require.NoError(mt, err)
-
 	})
 	mt.Run("insert one error", func(mt *mtest.T) {
 		mt.AddMockResponses(
@@ -121,7 +120,6 @@ func TestDeleteComment(t *testing.T) {
 	commentID := oID()
 
 	mt.Run("OK", func(mt *mtest.T) {
-
 		mt.AddMockResponses(bson.D{
 			{Key: "ok", Value: 1},
 			{Key: "n", Value: 1},
@@ -133,7 +131,6 @@ func TestDeleteComment(t *testing.T) {
 	})
 
 	mt.Run("Err comment not found", func(mt *mtest.T) {
-
 		mt.AddMockResponses(bson.D{
 			{Key: "ok", Value: 1},
 			{Key: "n", Value: 0},
@@ -145,7 +142,6 @@ func TestDeleteComment(t *testing.T) {
 	})
 
 	mt.Run("deleteOne error", func(mt *mtest.T) {
-
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(
 			mtest.CommandError{
 				Message: ErrDB.Error(),
@@ -155,7 +151,6 @@ func TestDeleteComment(t *testing.T) {
 		err := postDB.DeleteCom(context.Background(), postID, commentID)
 		require.Error(mt, err)
 		require.Contains(mt, err.Error(), "deleteOne")
-
 	})
 }
 

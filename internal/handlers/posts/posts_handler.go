@@ -2,9 +2,10 @@ package posts
 
 import (
 	"context"
-	"redditclone/internal/models"
-	"redditclone/internal/sessions"
-	"redditclone/pkg/logger"
+
+	"github.com/Artorison/social-network/internal/models"
+	"github.com/Artorison/social-network/internal/sessions"
+	"github.com/Artorison/social-network/pkg/logger"
 )
 
 type PostsService interface {

@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"redditclone/internal/models"
 	"time"
+
+	"github.com/Artorison/social-network/internal/models"
 )
 
 type SessionManager interface {

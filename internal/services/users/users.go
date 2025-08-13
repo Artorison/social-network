@@ -3,14 +3,14 @@ package users
 import (
 	"context"
 	"fmt"
-	"redditclone/internal/models"
-	"redditclone/internal/sessions"
-	"redditclone/pkg/helpers"
 	"time"
+
+	"github.com/Artorison/social-network/internal/models"
+	"github.com/Artorison/social-network/internal/sessions"
+	"github.com/Artorison/social-network/pkg/helpers"
 )
 
 func (s *UserService) RegisterUser(ctx context.Context, username, password string) (string, error) {
-
 	hash, err := sessions.GenerateHashPassword(password)
 	if err != nil {
 		return "", err
@@ -41,7 +41,6 @@ func (s *UserService) RegisterUser(ctx context.Context, username, password strin
 }
 
 func (s *UserService) LoginUser(ctx context.Context, username, password string) (string, error) {
-
 	user, err := s.Repo.GetUser(ctx, username)
 	if err != nil {
 		return "", err

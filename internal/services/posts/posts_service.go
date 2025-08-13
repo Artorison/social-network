@@ -2,8 +2,8 @@ package posts
 
 import (
 	"context"
-	"redditclone/internal/models"
 
+	"github.com/Artorison/social-network/internal/models"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

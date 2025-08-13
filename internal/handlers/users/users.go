@@ -5,12 +5,12 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"redditclone/internal/models"
-	"redditclone/pkg/logger"
+
+	"github.com/Artorison/social-network/internal/models"
+	"github.com/Artorison/social-network/pkg/logger"
 )
 
 func (h *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
-
 	if r.Header.Get("Content-Type") != "application/json" {
 		models.JSONError(w, http.StatusBadRequest, "unknown payload")
 		return

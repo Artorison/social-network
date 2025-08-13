@@ -2,8 +2,9 @@ package sessions
 
 import (
 	"context"
-	"redditclone/internal/models"
-	"redditclone/pkg/helpers"
+
+	"github.com/Artorison/social-network/internal/models"
+	"github.com/Artorison/social-network/pkg/helpers"
 )
 
 type Session struct {

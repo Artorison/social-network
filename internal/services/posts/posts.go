@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"redditclone/internal/models"
-	"redditclone/internal/sessions"
-	"redditclone/pkg/helpers"
 
+	"github.com/Artorison/social-network/internal/models"
+	"github.com/Artorison/social-network/internal/sessions"
+	"github.com/Artorison/social-network/pkg/helpers"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -18,8 +18,8 @@ func (s *PostService) GetAllPosts(ctx context.Context) ([]*models.Post, error) {
 }
 
 func (s *PostService) CreatePost(
-	ctx context.Context, dto models.CreatePostDTO, ss *sessions.Session) (*models.Post, error) {
-
+	ctx context.Context, dto models.CreatePostDTO, ss *sessions.Session,
+) (*models.Post, error) {
 	post := models.Post{
 		Category: dto.Category,
 		Title:    dto.Title,
@@ -38,7 +38,6 @@ func (s *PostService) CreatePost(
 		Votes:    []*models.Vote{{UserID: ss.User.ID, Vote: 1}},
 	}
 	err := s.Repo.CreatePost(ctx, &post)
-
 	if err != nil {
 		return nil, err
 	}
@@ -46,14 +45,14 @@ func (s *PostService) CreatePost(
 }
 
 func (s *PostService) GetPostsByCategory(
-	ctx context.Context, category string) ([]*models.Post, error) {
-
+	ctx context.Context, category string,
+) ([]*models.Post, error) {
 	return s.Repo.GetPostsByCategory(ctx, category)
 }
 
 func (s *PostService) GetPostByID(
-	ctx context.Context, postID string) (*models.Post, error) {
-
+	ctx context.Context, postID string,
+) (*models.Post, error) {
 	pID, err := primitive.ObjectIDFromHex(postID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid postID: %w", err)
@@ -62,14 +61,14 @@ func (s *PostService) GetPostByID(
 }
 
 func (s *PostService) GetUserPosts(
-	ctx context.Context, username string) ([]*models.Post, error) {
-
+	ctx context.Context, username string,
+) ([]*models.Post, error) {
 	return s.Repo.GetUsersPosts(ctx, username)
 }
 
 func (s *PostService) DeletePost(
-	ctx context.Context, postID string) error {
-
+	ctx context.Context, postID string,
+) error {
 	pID, err := primitive.ObjectIDFromHex(postID)
 	if err != nil {
 		return fmt.Errorf("invalid postID: %w", err)

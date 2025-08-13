@@ -1,4 +1,4 @@
-module redditclone
+module github.com/Artorison/social-network
 
 go 1.24.2
 

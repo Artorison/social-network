@@ -5,7 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"log/slog"
-	"redditclone/internal/models"
+
+	"github.com/Artorison/social-network/internal/models"
 )
 
 type UsersMysqlRepo struct {
@@ -17,7 +18,6 @@ func NewUsersMysqlRepo(db *sql.DB) *UsersMysqlRepo {
 }
 
 func (r *UsersMysqlRepo) CreateUser(ctx context.Context, u *models.User) error {
-
 	const check = `SELECT 1 FROM users WHERE username = ? LIMIT 1;`
 	var exists int
 	err := r.DB.QueryRowContext(ctx, check, u.Username).Scan(&exists)
@@ -42,7 +42,7 @@ func (r *UsersMysqlRepo) CreateUser(ctx context.Context, u *models.User) error {
 func (r *UsersMysqlRepo) GetUser(ctx context.Context, username string) (*models.User, error) {
 	const query = `SELECT id, password_hash FROM users WHERE username = ?;`
 
-	var user = models.User{Username: username}
+	user := models.User{Username: username}
 	err := r.DB.QueryRowContext(ctx, query, username).Scan(&user.ID, &user.PasswordHash)
 	if err == sql.ErrNoRows {
 		slog.Error("user not found", slog.String("username", username))

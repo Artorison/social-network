@@ -3,16 +3,37 @@ services:
     image: mysql:8
     command: --mysql-native-password=ON
     environment:
-      MYSQL_ROOT_PASSWORD: "love"
+      MYSQL_ROOT_PASSWORD: love
       MYSQL_DATABASE: golang
-    ports:
-      - '3306:3306'
+    ports: ["3306:3306"]
     volumes:
-      - './_sql/:/docker-entrypoint-initdb.d/'
+      - ./_sql/:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-plove"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   mongodb:
-   image: 'mongo:5'
-   environment:
-     - MONGO_INITDB_DATABASE=coursera
-   ports:
-     - '27017:27017'
+    image: mongo:7
+    environment:
+      MONGO_INITDB_DATABASE: default
+    ports: ["27017:27017"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    ports: ["3000:3000"]
+    env_file:
+      - .env.docker
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ./.env.docker:/app/.env:ro

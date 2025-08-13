@@ -5,16 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"redditclone/internal/models"
-	"redditclone/internal/sessions"
-	"redditclone/pkg/logger"
-
-	"log/slog"
-
+	"github.com/Artorison/social-network/internal/models"
+	"github.com/Artorison/social-network/internal/sessions"
+	"github.com/Artorison/social-network/pkg/logger"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -398,6 +396,7 @@ func TestAddComment(t *testing.T) {
 		})
 	}
 }
+
 func TestDeleteComent(t *testing.T) {
 	post := &models.Post{Title: title}
 

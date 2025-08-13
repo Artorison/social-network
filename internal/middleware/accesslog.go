@@ -3,9 +3,9 @@ package middleware
 import (
 	"log/slog"
 	"net/http"
-	"redditclone/pkg/logger"
 	"time"
 
+	"github.com/Artorison/social-network/pkg/logger"
 	"github.com/gorilla/mux"
 )
 

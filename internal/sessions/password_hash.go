@@ -16,7 +16,6 @@ func MustPepperKey(key string) {
 }
 
 func GenerateHashPassword(password string) (string, error) {
-
 	hash, err := bcrypt.GenerateFromPassword([]byte(pepper+password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err

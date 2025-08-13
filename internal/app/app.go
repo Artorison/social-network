@@ -2,31 +2,34 @@ package app
 
 import (
 	"context"
+	"errors"
 	"net/http"
-	"redditclone/config"
-	"redditclone/database/mongodb"
-	"redditclone/database/mysqldb"
-	postshandler "redditclone/internal/handlers/posts"
-	usershandlers "redditclone/internal/handlers/users"
-	"redditclone/internal/middleware"
-	"redditclone/internal/repo/posts/postmongo"
-	usersmysql "redditclone/internal/repo/users/my_sql"
-	postservice "redditclone/internal/services/posts"
-	userservice "redditclone/internal/services/users"
-	"redditclone/internal/sessions"
-	"redditclone/pkg/logger"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
+	"github.com/Artorison/social-network/config"
+	"github.com/Artorison/social-network/database/mongodb"
+	"github.com/Artorison/social-network/database/mysqldb"
+	postshandler "github.com/Artorison/social-network/internal/handlers/posts"
+	usershandlers "github.com/Artorison/social-network/internal/handlers/users"
+	"github.com/Artorison/social-network/internal/middleware"
+	"github.com/Artorison/social-network/internal/repo/posts/postmongo"
+	usersmysql "github.com/Artorison/social-network/internal/repo/users/my_sql"
+	postservice "github.com/Artorison/social-network/internal/services/posts"
+	userservice "github.com/Artorison/social-network/internal/services/users"
+	"github.com/Artorison/social-network/internal/sessions"
+	"github.com/Artorison/social-network/pkg/logger"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func Run(cfg *config.Config, l *logger.Logger) {
-
 	router := mux.NewRouter()
 
-	ctx, cansel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cansel()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
 
 	mongoClient := mongodb.InitMongoDB(ctx, cfg.MongoAddr)
 
@@ -53,10 +56,36 @@ func NewApp(cfg *config.Config, router *mux.Router, logger *logger.Logger, mongo
 
 func (s *App) Start() {
 	s.LoadStatic()
-	s.NewRealisation()
+	s.InitDependencies()
+
+	srv := &http.Server{
+		Addr:              ":" + s.Cfg.AppPort,
+		Handler:           s.Router,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+
 	s.Logger.Info("Server listening on http://localhost:" + s.Cfg.AppPort)
-	if err := http.ListenAndServe(":"+s.Cfg.AppPort, s.Router); err != nil {
-		s.Logger.Error("server is crash", logger.Err(err))
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			s.Logger.Error("server crashed", logger.Err(err))
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		s.Logger.Error("graceful shutdown failed", logger.Err(err))
+	} else {
+		s.Logger.Info("server stopped gracefully")
 	}
 }
 
@@ -66,7 +95,7 @@ func (s *App) LoadStatic() {
 	s.Logger.Info("register static")
 }
 
-func (s *App) NewRealisation() {
+func (s *App) InitDependencies() {
 	s.Router.Use(middleware.AccessLog(s.Logger))
 	s.Router.Use(middleware.PanicRecover())
 
