@@ -1,0 +1,14 @@
+
+CREATE TABLE IF NOT EXISTS users (
+    id VARCHAR(256) PRIMARY KEY,
+    username  VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+    id VARCHAR(256) PRIMARY KEY,
+    token VARCHAR(512) NOT NULL,
+    user_id VARCHAR(256) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE 
+);

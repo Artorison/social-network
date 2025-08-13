@@ -1,0 +1,1322 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>posts: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">redditclone/internal/handlers/posts/comments.go (100.0%)</option>
+				
+				<option value="file1">redditclone/internal/handlers/posts/posts.go (100.0%)</option>
+				
+				<option value="file2">redditclone/internal/handlers/posts/posts_handler.go (100.0%)</option>
+				
+				<option value="file3">redditclone/internal/handlers/posts/posts_handler_mocks.go (100.0%)</option>
+				
+				<option value="file4">redditclone/internal/handlers/posts/votes.go (100.0%)</option>
+				
+				<option value="file5">redditclone/internal/handlers/users/users.go (100.0%)</option>
+				
+				<option value="file6">redditclone/internal/handlers/users/users_handler.go (100.0%)</option>
+				
+				<option value="file7">redditclone/internal/handlers/users/users_handler_mocks.go (100.0%)</option>
+				
+				<option value="file8">redditclone/internal/repo/posts/postmongo/comments.go (100.0%)</option>
+				
+				<option value="file9">redditclone/internal/repo/posts/postmongo/mongo_repo.go (100.0%)</option>
+				
+				<option value="file10">redditclone/internal/repo/posts/postmongo/posts.go (92.7%)</option>
+				
+				<option value="file11">redditclone/internal/repo/posts/postmongo/votes.go (96.1%)</option>
+				
+				<option value="file12">redditclone/internal/repo/users/my_sql/users.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package posts
+
+import (
+        "encoding/json"
+        "errors"
+        "log/slog"
+        "net/http"
+        "redditclone/internal/models"
+        "redditclone/internal/sessions"
+        "redditclone/pkg/logger"
+
+        "github.com/gorilla/mux"
+)
+
+func (h *PostsHandler) AddComment(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        vars := mux.Vars(r)
+        postID, ok := vars["post_id"]
+        if !ok </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, "invalid post id")
+                return
+        }</span>
+
+        <span class="cov8" title="1">var dto models.AddCommentDTO
+        if err := json.NewDecoder(r.Body).Decode(&amp;dto); err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, "invalid JSON body")
+                return
+        }</span>
+
+        <span class="cov8" title="1">session, ok := sessions.GetSessionFromCtx(r.Context())
+        if !ok || session == nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusUnauthorized, "no session in context")
+                return
+        }</span>
+
+        <span class="cov8" title="1">h.Logger.Info("add comment", slog.String("comment", dto.CommentMsg))
+        post, err := h.Service.AddComment(r.Context(), postID, dto.CommentMsg, session)
+        if errors.Is(err, models.ErrPostNotFound) </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("upvote get post", logger.Err(err))
+                return
+        }</span>
+
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusCreated)
+        if err := json.NewEncoder(w).Encode(post); err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "failed to encode response: "+err.Error())
+                h.Logger.Error("encode JSON", logger.Err(err))
+                return
+        }</span>
+}
+
+func (h *PostsHandler) DeleteComment(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        vars := mux.Vars(r)
+        postID, ok := vars["post_id"]
+        if !ok </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, "invalid post id")
+                return
+        }</span>
+        <span class="cov8" title="1">commentID, ok := vars["comment_id"]
+        if !ok </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, "invalid comment id")
+                return
+        }</span>
+
+        <span class="cov8" title="1">post, err := h.Service.DeleteComment(r.Context(), postID, commentID)
+        if errors.Is(err, models.ErrPostNotFound) </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("delete comment post", logger.Err(err))
+                return
+        }</span>
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json")
+        if err := json.NewEncoder(w).Encode(post); err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "failed to encode response: "+err.Error())
+                h.Logger.Error("encode JSON", logger.Err(err))
+                return
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package posts
+
+import (
+        "encoding/json"
+        "errors"
+        "log/slog"
+        "net/http"
+        "redditclone/internal/models"
+        "redditclone/internal/sessions"
+        "redditclone/pkg/logger"
+
+        "github.com/gorilla/mux"
+)
+
+func (h *PostsHandler) GetAllPosts(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        w.Header().Set("Content-type", "application/json")
+        posts, err := h.Service.GetAllPosts(r.Context())
+        if err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("GetAllPosts", logger.Err(err))
+                return
+        }</span>
+
+        <span class="cov8" title="1">if err := json.NewEncoder(w).Encode(posts); err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("GetAllPosts encode JSON", logger.Err(err))
+                return
+        }</span>
+}
+
+func (h *PostsHandler) CreatePost(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        w.Header().Set("Content-type", "application/json")
+        var dto models.CreatePostDTO
+        if err := json.NewDecoder(r.Body).Decode(&amp;dto); err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, "invalid JSON body")
+                return
+        }</span>
+
+        <span class="cov8" title="1">session, ok := sessions.GetSessionFromCtx(r.Context())
+        if !ok </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusUnauthorized, "unauthorized")
+                return
+        }</span>
+        <span class="cov8" title="1">h.Logger.Info("create post", slog.String("username", dto.Title))
+        post, err := h.Service.CreatePost(r.Context(), dto, session)
+        if err != nil </span><span class="cov8" title="1">{
+                http.Error(w, "create post error", http.StatusInternalServerError)
+                h.Logger.Error("create post internal", logger.Err(err))
+                return
+        }</span>
+
+        <span class="cov8" title="1">w.WriteHeader(http.StatusCreated)
+        if err := json.NewEncoder(w).Encode(post); err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("CreatePost encode JSON", logger.Err(err))
+                return
+        }</span>
+
+}
+
+func (h *PostsHandler) GetPostByCategory(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+
+        vars := mux.Vars(r)
+
+        category, ok := vars["category"]
+        if !ok </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, "category not specified")
+                return
+        }</span>
+
+        <span class="cov8" title="1">h.Logger.Info("Get Post By Category", slog.String("category", category))
+        posts, err := h.Service.GetPostsByCategory(r.Context(), category)
+        if err != nil </span><span class="cov8" title="1">{
+                http.Error(w, "GetPostsByCategory error", http.StatusInternalServerError)
+                h.Logger.Error("GetPostsByCategory", logger.Err(err))
+                return
+        }</span>
+
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json")
+        if err := json.NewEncoder(w).Encode(posts); err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("GetPostByCategory encode JSON", logger.Err(err))
+                return
+        }</span>
+}
+
+func (h *PostsHandler) GetPostByID(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        vars := mux.Vars(r)
+        postID, ok := vars["post_id"]
+        if !ok </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, "invalid post id")
+                return
+        }</span>
+
+        <span class="cov8" title="1">h.Logger.Info("Get Post By ID", slog.String("post_id", postID))
+        post, err := h.Service.GetPostByID(r.Context(), postID)
+        if errors.Is(err, models.ErrPostNotFound) </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("get post by id", logger.Err(err))
+                return
+        }</span>
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json")
+        if err := json.NewEncoder(w).Encode(post); err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("GetPostByID encode JSON", logger.Err(err))
+                return
+        }</span>
+}
+
+func (h *PostsHandler) GetPostsByUser(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        vars := mux.Vars(r)
+        username, ok := vars["username"]
+        if !ok </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, "invalid username")
+                return
+        }</span>
+
+        <span class="cov8" title="1">h.Logger.Info("Get Post By User", slog.String("username", username))
+        posts, err := h.Service.GetUserPosts(r.Context(), username)
+        if err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("GetPostsByUser", logger.Err(err))
+                return
+        }</span>
+
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json")
+        if err := json.NewEncoder(w).Encode(posts); err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("GetPostsByUser encode JSON", logger.Err(err))
+                return
+        }</span>
+}
+
+func (h *PostsHandler) DeletePost(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        vars := mux.Vars(r)
+        postID, ok := vars["post_id"]
+        if !ok </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, "invalid post id")
+                return
+        }</span>
+
+        <span class="cov8" title="1">h.Logger.Info("Delete Post", slog.String("post_id", postID))
+        err := h.Service.DeletePost(r.Context(), postID)
+        if err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("DeletePost", logger.Err(err))
+                return
+        }</span>
+
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json")
+        if err := json.NewEncoder(w).Encode(map[string]string{"message": "success"}); err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("DeletePost encode JSON", logger.Err(err))
+                return
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package posts
+
+import (
+        "context"
+        "redditclone/internal/models"
+        "redditclone/internal/sessions"
+        "redditclone/pkg/logger"
+)
+
+type PostsService interface {
+        GetAllPosts(ctx context.Context) ([]*models.Post, error)
+        CreatePost(ctx context.Context, dto models.CreatePostDTO, ss *sessions.Session) (*models.Post, error)
+        GetPostsByCategory(ctx context.Context, category string) ([]*models.Post, error)
+        GetPostByID(ctx context.Context, postID string) (*models.Post, error)
+        GetUserPosts(ctx context.Context, username string) ([]*models.Post, error)
+        DeletePost(ctx context.Context, postID string) error
+
+        AddComment(ctx context.Context, postID string, commentMsg string, ss *sessions.Session) (*models.Post, error)
+        DeleteComment(ctx context.Context, postID, commentID string) (*models.Post, error)
+
+        UpVote(ctx context.Context, postID string, ss *sessions.Session) (*models.Post, error)
+        DownVote(ctx context.Context, postID string, ss *sessions.Session) (*models.Post, error)
+        UnVote(ctx context.Context, postID string, ss *sessions.Session) (*models.Post, error)
+}
+
+type PostsHandler struct {
+        Service PostsService
+        Logger  *logger.Logger
+}
+
+func NewPostHandler(service PostsService, logger *logger.Logger) *PostsHandler <span class="cov8" title="1">{
+        return &amp;PostsHandler{
+                Service: service,
+                Logger:  logger,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">// Code generated by MockGen. DO NOT EDIT.
+// Source: posts_handler.go
+//
+// Generated by this command:
+//
+//        mockgen -source=posts_handler.go -destination=posts_handler_mocks.go -package=posts
+//
+
+// Package posts is a generated GoMock package.
+package posts
+
+import (
+        context "context"
+        models "redditclone/internal/models"
+        sessions "redditclone/internal/sessions"
+        reflect "reflect"
+
+        gomock "go.uber.org/mock/gomock"
+)
+
+// MockPostsService is a mock of PostsService interface.
+type MockPostsService struct {
+        ctrl     *gomock.Controller
+        recorder *MockPostsServiceMockRecorder
+        isgomock struct{}
+}
+
+// MockPostsServiceMockRecorder is the mock recorder for MockPostsService.
+type MockPostsServiceMockRecorder struct {
+        mock *MockPostsService
+}
+
+// NewMockPostsService creates a new mock instance.
+func NewMockPostsService(ctrl *gomock.Controller) *MockPostsService <span class="cov8" title="1">{
+        mock := &amp;MockPostsService{ctrl: ctrl}
+        mock.recorder = &amp;MockPostsServiceMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockPostsService) EXPECT() *MockPostsServiceMockRecorder <span class="cov8" title="1">{
+        return m.recorder
+}</span>
+
+// AddComment mocks base method.
+func (m *MockPostsService) AddComment(ctx context.Context, postID, commentMsg string, ss *sessions.Session) (*models.Post, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "AddComment", ctx, postID, commentMsg, ss)
+        ret0, _ := ret[0].(*models.Post)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// AddComment indicates an expected call of AddComment.
+func (mr *MockPostsServiceMockRecorder) AddComment(ctx, postID, commentMsg, ss any) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddComment", reflect.TypeOf((*MockPostsService)(nil).AddComment), ctx, postID, commentMsg, ss)
+}</span>
+
+// CreatePost mocks base method.
+func (m *MockPostsService) CreatePost(ctx context.Context, dto models.CreatePostDTO, ss *sessions.Session) (*models.Post, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "CreatePost", ctx, dto, ss)
+        ret0, _ := ret[0].(*models.Post)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// CreatePost indicates an expected call of CreatePost.
+func (mr *MockPostsServiceMockRecorder) CreatePost(ctx, dto, ss any) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePost", reflect.TypeOf((*MockPostsService)(nil).CreatePost), ctx, dto, ss)
+}</span>
+
+// DeleteComment mocks base method.
+func (m *MockPostsService) DeleteComment(ctx context.Context, postID, commentID string) (*models.Post, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "DeleteComment", ctx, postID, commentID)
+        ret0, _ := ret[0].(*models.Post)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// DeleteComment indicates an expected call of DeleteComment.
+func (mr *MockPostsServiceMockRecorder) DeleteComment(ctx, postID, commentID any) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteComment", reflect.TypeOf((*MockPostsService)(nil).DeleteComment), ctx, postID, commentID)
+}</span>
+
+// DeletePost mocks base method.
+func (m *MockPostsService) DeletePost(ctx context.Context, postID string) error <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "DeletePost", ctx, postID)
+        ret0, _ := ret[0].(error)
+        return ret0
+}</span>
+
+// DeletePost indicates an expected call of DeletePost.
+func (mr *MockPostsServiceMockRecorder) DeletePost(ctx, postID any) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePost", reflect.TypeOf((*MockPostsService)(nil).DeletePost), ctx, postID)
+}</span>
+
+// DownVote mocks base method.
+func (m *MockPostsService) DownVote(ctx context.Context, postID string, ss *sessions.Session) (*models.Post, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "DownVote", ctx, postID, ss)
+        ret0, _ := ret[0].(*models.Post)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// DownVote indicates an expected call of DownVote.
+func (mr *MockPostsServiceMockRecorder) DownVote(ctx, postID, ss any) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DownVote", reflect.TypeOf((*MockPostsService)(nil).DownVote), ctx, postID, ss)
+}</span>
+
+// GetAllPosts mocks base method.
+func (m *MockPostsService) GetAllPosts(ctx context.Context) ([]*models.Post, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetAllPosts", ctx)
+        ret0, _ := ret[0].([]*models.Post)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetAllPosts indicates an expected call of GetAllPosts.
+func (mr *MockPostsServiceMockRecorder) GetAllPosts(ctx any) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllPosts", reflect.TypeOf((*MockPostsService)(nil).GetAllPosts), ctx)
+}</span>
+
+// GetPostByID mocks base method.
+func (m *MockPostsService) GetPostByID(ctx context.Context, postID string) (*models.Post, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetPostByID", ctx, postID)
+        ret0, _ := ret[0].(*models.Post)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetPostByID indicates an expected call of GetPostByID.
+func (mr *MockPostsServiceMockRecorder) GetPostByID(ctx, postID any) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostByID", reflect.TypeOf((*MockPostsService)(nil).GetPostByID), ctx, postID)
+}</span>
+
+// GetPostsByCategory mocks base method.
+func (m *MockPostsService) GetPostsByCategory(ctx context.Context, category string) ([]*models.Post, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetPostsByCategory", ctx, category)
+        ret0, _ := ret[0].([]*models.Post)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetPostsByCategory indicates an expected call of GetPostsByCategory.
+func (mr *MockPostsServiceMockRecorder) GetPostsByCategory(ctx, category any) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsByCategory", reflect.TypeOf((*MockPostsService)(nil).GetPostsByCategory), ctx, category)
+}</span>
+
+// GetUserPosts mocks base method.
+func (m *MockPostsService) GetUserPosts(ctx context.Context, username string) ([]*models.Post, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetUserPosts", ctx, username)
+        ret0, _ := ret[0].([]*models.Post)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetUserPosts indicates an expected call of GetUserPosts.
+func (mr *MockPostsServiceMockRecorder) GetUserPosts(ctx, username any) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserPosts", reflect.TypeOf((*MockPostsService)(nil).GetUserPosts), ctx, username)
+}</span>
+
+// UnVote mocks base method.
+func (m *MockPostsService) UnVote(ctx context.Context, postID string, ss *sessions.Session) (*models.Post, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "UnVote", ctx, postID, ss)
+        ret0, _ := ret[0].(*models.Post)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// UnVote indicates an expected call of UnVote.
+func (mr *MockPostsServiceMockRecorder) UnVote(ctx, postID, ss any) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnVote", reflect.TypeOf((*MockPostsService)(nil).UnVote), ctx, postID, ss)
+}</span>
+
+// UpVote mocks base method.
+func (m *MockPostsService) UpVote(ctx context.Context, postID string, ss *sessions.Session) (*models.Post, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "UpVote", ctx, postID, ss)
+        ret0, _ := ret[0].(*models.Post)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// UpVote indicates an expected call of UpVote.
+func (mr *MockPostsServiceMockRecorder) UpVote(ctx, postID, ss any) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpVote", reflect.TypeOf((*MockPostsService)(nil).UpVote), ctx, postID, ss)
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package posts
+
+import (
+        "encoding/json"
+        "errors"
+        "log/slog"
+        "net/http"
+        "redditclone/internal/models"
+        "redditclone/internal/sessions"
+        "redditclone/pkg/logger"
+
+        "github.com/gorilla/mux"
+)
+
+func (h *PostsHandler) UppVote(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        vars := mux.Vars(r)
+        postID, ok := vars["post_id"]
+        if !ok </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, "invalid post id")
+                return
+        }</span>
+
+        <span class="cov8" title="1">session, ok := sessions.GetSessionFromCtx(r.Context())
+        if !ok </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusUnauthorized, "unauthorized")
+                return
+        }</span>
+
+        <span class="cov8" title="1">h.Logger.Info("UppVote", slog.String("post_id", postID))
+        post, err := h.Service.UpVote(r.Context(), postID, session)
+        if errors.Is(err, models.ErrPostNotFound) </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("upvote get post", logger.Err(err))
+                return
+        }</span>
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json")
+        if err := json.NewEncoder(w).Encode(post); err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("UppVote encode JSON", logger.Err(err))
+                return
+        }</span>
+}
+
+func (h *PostsHandler) DownVote(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        vars := mux.Vars(r)
+        postID, ok := vars["post_id"]
+        if !ok </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, "invalid post id")
+                return
+        }</span>
+
+        <span class="cov8" title="1">session, ok := sessions.GetSessionFromCtx(r.Context())
+        if !ok </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusUnauthorized, "unauthorized")
+                return
+        }</span>
+
+        <span class="cov8" title="1">h.Logger.Info("DownVote", slog.String("post_id", postID))
+        post, err := h.Service.DownVote(r.Context(), postID, session)
+        if errors.Is(err, models.ErrPostNotFound) </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("downvote get post", logger.Err(err))
+                return
+        }</span>
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json")
+        if err := json.NewEncoder(w).Encode(post); err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("DownVote encode JSON", logger.Err(err))
+                return
+        }</span>
+}
+
+func (h *PostsHandler) UnVote(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        vars := mux.Vars(r)
+        postID, ok := vars["post_id"]
+        if !ok </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, "invalid post id")
+                return
+        }</span>
+
+        <span class="cov8" title="1">session, ok := sessions.GetSessionFromCtx(r.Context())
+        if !ok || session == nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusUnauthorized, "unauthorized")
+                return
+        }</span>
+
+        <span class="cov8" title="1">h.Logger.Info("UnVote", slog.String("post_id", postID))
+        post, err := h.Service.UnVote(r.Context(), postID, session)
+        if errors.Is(err, models.ErrPostNotFound) </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("unvote get post", logger.Err(err))
+                return
+        }</span>
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json")
+        if err := json.NewEncoder(w).Encode(post); err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("UnVote encode JSON", logger.Err(err))
+                return
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package users
+
+import (
+        "encoding/json"
+        "errors"
+        "log/slog"
+        "net/http"
+        "redditclone/internal/models"
+        "redditclone/pkg/logger"
+)
+
+func (h *UsersHandler) Register(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+
+        if r.Header.Get("Content-Type") != "application/json" </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, "unknown payload")
+                return
+        }</span>
+
+        <span class="cov8" title="1">var req models.LoginForm
+        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov8" title="1">{
+                h.Logger.Error("decode JSON", logger.Err(err))
+                return
+        }</span>
+
+        <span class="cov8" title="1">h.Logger.Info("register user", slog.String("username", req.Username))
+        token, err := h.Service.RegisterUser(r.Context(), req.Username, req.Password)
+        if errors.Is(err, models.ErrUserExists) </span><span class="cov8" title="1">{
+                resp := models.ValidationErrors{
+                        Errors: []models.FieldError{{
+                                Location: "body",
+                                Param:    "username",
+                                Value:    req.Username,
+                                Msg:      err.Error(),
+                        }},
+                }
+                models.FieldErr(w, http.StatusUnprocessableEntity, resp)
+                return
+        }</span>
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("register get token", logger.Err(err))
+                return
+        }</span>
+
+        <span class="cov8" title="1">w.Header().Set("Content-type", "application/json")
+        w.WriteHeader(http.StatusCreated)
+        err = json.NewEncoder(w).Encode(models.RequestToken{Token: token})
+        if err != nil </span><span class="cov8" title="1">{
+                http.Error(w, "JSON encoder error", http.StatusInternalServerError)
+                h.Logger.Error("register encode JSON", logger.Err(err))
+                return
+        }</span>
+}
+
+func (h *UsersHandler) Login(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        if r.Header.Get("Content-Type") != "application/json" </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusBadRequest, "unknown payload")
+                return
+        }</span>
+
+        <span class="cov8" title="1">var req models.LoginForm
+        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, err.Error())
+                return
+        }</span>
+
+        <span class="cov8" title="1">h.Logger.Info("login user", slog.String("username", req.Username))
+        token, err := h.Service.LoginUser(r.Context(), req.Username, req.Password)
+        if errors.Is(err, models.ErrUserNotFound) </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusUnauthorized, err.Error())
+                return
+        }</span>
+        <span class="cov8" title="1">if errors.Is(err, models.ErrInvalidLogin) </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusUnauthorized, err.Error())
+                return
+        }</span>
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                models.JSONError(w, http.StatusInternalServerError, "internal")
+                h.Logger.Error("login user get token", logger.Err(err))
+                return
+        }</span>
+
+        <span class="cov8" title="1">w.Header().Set("Content-type", "application/json")
+        err = json.NewEncoder(w).Encode(models.RequestToken{Token: token})
+        if err != nil </span><span class="cov8" title="1">{
+                http.Error(w, "JSON encoder error", http.StatusInternalServerError)
+                h.Logger.Error("login encode JSON", logger.Err(err))
+                return
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package users
+
+import (
+        "context"
+        "redditclone/pkg/logger"
+)
+
+type UsersService interface {
+        RegisterUser(ctx context.Context, username, password string) (string, error)
+        LoginUser(ctx context.Context, username, password string) (string, error)
+}
+type UsersHandler struct {
+        Service UsersService
+        Logger  *logger.Logger
+}
+
+func NewUserHandler(service UsersService, logger *logger.Logger) *UsersHandler <span class="cov8" title="1">{
+        return &amp;UsersHandler{Service: service, Logger: logger}
+}</span>
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">// Code generated by MockGen. DO NOT EDIT.
+// Source: users_handler.go
+//
+// Generated by this command:
+//
+//        mockgen -source=users_handler.go -destination=users_handler_mocks.go -package=users
+//
+
+// Package users is a generated GoMock package.
+package users
+
+import (
+        context "context"
+        reflect "reflect"
+
+        gomock "go.uber.org/mock/gomock"
+)
+
+// MockUsersService is a mock of UsersService interface.
+type MockUsersService struct {
+        ctrl     *gomock.Controller
+        recorder *MockUsersServiceMockRecorder
+        isgomock struct{}
+}
+
+// MockUsersServiceMockRecorder is the mock recorder for MockUsersService.
+type MockUsersServiceMockRecorder struct {
+        mock *MockUsersService
+}
+
+// NewMockUsersService creates a new mock instance.
+func NewMockUsersService(ctrl *gomock.Controller) *MockUsersService <span class="cov8" title="1">{
+        mock := &amp;MockUsersService{ctrl: ctrl}
+        mock.recorder = &amp;MockUsersServiceMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockUsersService) EXPECT() *MockUsersServiceMockRecorder <span class="cov8" title="1">{
+        return m.recorder
+}</span>
+
+// LoginUser mocks base method.
+func (m *MockUsersService) LoginUser(ctx context.Context, username, password string) (string, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "LoginUser", ctx, username, password)
+        ret0, _ := ret[0].(string)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// LoginUser indicates an expected call of LoginUser.
+func (mr *MockUsersServiceMockRecorder) LoginUser(ctx, username, password any) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoginUser", reflect.TypeOf((*MockUsersService)(nil).LoginUser), ctx, username, password)
+}</span>
+
+// RegisterUser mocks base method.
+func (m *MockUsersService) RegisterUser(ctx context.Context, username, password string) (string, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "RegisterUser", ctx, username, password)
+        ret0, _ := ret[0].(string)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// RegisterUser indicates an expected call of RegisterUser.
+func (mr *MockUsersServiceMockRecorder) RegisterUser(ctx, username, password any) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterUser", reflect.TypeOf((*MockUsersService)(nil).RegisterUser), ctx, username, password)
+}</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package postmongo
+
+import (
+        "context"
+        "fmt"
+        "redditclone/internal/models"
+
+        "go.mongodb.org/mongo-driver/bson"
+        "go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+func (r *PostMongoDB) AddCom(ctx context.Context, newCom *models.Comment) error <span class="cov8" title="1">{
+
+        if _, err := r.Comments.InsertOne(ctx, newCom); err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("insertOne com: %w", err)
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (r *PostMongoDB) DeleteCom(ctx context.Context,
+        postID, commentID primitive.ObjectID) error <span class="cov8" title="1">{
+
+        res, err := r.Comments.DeleteOne(ctx, bson.M{"_id": commentID, "post_id": postID})
+        if err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("deleteOne: %w", err)
+        }</span>
+        <span class="cov8" title="1">if res.DeletedCount == 0 </span><span class="cov8" title="1">{
+                return models.ErrCommentNotFound
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (r PostMongoDB) GetPostCom(ctx context.Context, postID primitive.ObjectID) (
+        []*models.Comment, error) <span class="cov8" title="1">{
+
+        cursor, err := r.Comments.Find(ctx, bson.M{"post_id": postID})
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("find coms: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">defer cursor.Close(ctx)
+
+        comments := make([]*models.Comment, 0, 10)
+
+        for cursor.Next(ctx) </span><span class="cov8" title="1">{
+                var c models.Comment
+
+                if err := cursor.Decode(&amp;c); err != nil </span><span class="cov8" title="1">{
+                        return nil, fmt.Errorf("decode com: %w", err)
+                }</span>
+                <span class="cov8" title="1">comments = append(comments, &amp;c)</span>
+        }
+        <span class="cov8" title="1">if err := cursor.Err(); err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("cursor err: %w", err)
+        }</span>
+        <span class="cov8" title="1">return comments, nil</span>
+}
+
+func (r *PostMongoDB) CountPostComments(ctx context.Context,
+        postID primitive.ObjectID) (int, error) <span class="cov8" title="1">{
+        count, err := r.Comments.CountDocuments(ctx, bson.M{"post_id": postID})
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, fmt.Errorf("count docs: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return int(count), nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package postmongo
+
+import (
+        "go.mongodb.org/mongo-driver/mongo"
+)
+
+type PostMongoDB struct {
+        Posts    *mongo.Collection
+        Comments *mongo.Collection
+}
+
+func NewModgoDB(client *mongo.Client, dbName string) *PostMongoDB <span class="cov8" title="1">{
+        return &amp;PostMongoDB{
+                Posts:    client.Database(dbName).Collection("posts"),
+                Comments: client.Database(dbName).Collection("comments"),
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package postmongo
+
+import (
+        "context"
+        "fmt"
+        "redditclone/internal/models"
+
+        "go.mongodb.org/mongo-driver/bson"
+        "go.mongodb.org/mongo-driver/bson/primitive"
+        "go.mongodb.org/mongo-driver/mongo/options"
+)
+
+func (r *PostMongoDB) CreatePost(ctx context.Context, post *models.Post) error <span class="cov8" title="1">{
+        _, err := r.Posts.InsertOne(ctx, post)
+        if err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("insert post: %w", err)
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (r *PostMongoDB) GetAllPosts(ctx context.Context) ([]*models.Post, error) <span class="cov8" title="1">{
+
+        cursor, err := r.Posts.Find(ctx, bson.D{}, options.Find().
+                SetSort(bson.D{{Key: "score", Value: -1}}))
+
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("find post: %w", err)
+        }</span>
+        <span class="cov8" title="1">defer cursor.Close(ctx)
+
+        posts := []*models.Post{}
+
+        if err := cursor.All(ctx, &amp;posts); err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("cursor all posts: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">for _, post := range posts </span><span class="cov8" title="1">{
+                counter, err := r.CountPostComments(ctx, post.ID)
+                if err != nil </span><span class="cov8" title="1">{
+                        return nil, fmt.Errorf("postID: %s err: %w", post.ID.Hex(), err)
+                }</span>
+                <span class="cov8" title="1">post.Comments = make([]*models.Comment, counter)</span>
+        }
+
+        <span class="cov8" title="1">return posts, nil</span>
+}
+
+func (r *PostMongoDB) GetPostByID(ctx context.Context, postID primitive.ObjectID) (
+        *models.Post, error) <span class="cov8" title="1">{
+
+        var post models.Post
+        err := r.Posts.FindOneAndUpdate(
+                ctx,
+                bson.M{"_id": postID},
+                bson.D{{
+                        Key:   "$inc",
+                        Value: bson.D{{Key: "views", Value: 1}},
+                }},
+                options.FindOneAndUpdate().SetReturnDocument(options.After)).
+                Decode(&amp;post)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("find: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">comments, err := r.GetPostCom(ctx, postID)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">post.Comments = comments
+        return &amp;post, nil</span>
+}
+
+func (r *PostMongoDB) GetPostsByCategory(ctx context.Context, category string) ([]*models.Post, error) <span class="cov8" title="1">{
+
+        cursor, err := r.Posts.Find(ctx, bson.M{"category": category}, options.Find().
+                SetSort(bson.D{{Key: "score", Value: -1}}))
+
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("find post: %w", err)
+        }</span>
+        <span class="cov8" title="1">defer cursor.Close(ctx)
+
+        posts := []*models.Post{}
+
+        if err := cursor.All(ctx, &amp;posts); err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("cursor all posts: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">if err := r.AddCommentsToPost(ctx, posts); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return posts, nil</span>
+}
+
+func (r *PostMongoDB) DeletePost(ctx context.Context, postID primitive.ObjectID) error <span class="cov8" title="1">{
+
+        if _, err := r.Posts.DeleteOne(ctx, bson.M{"_id": postID}); err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("delete one: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (r *PostMongoDB) GetUsersPosts(ctx context.Context, username string) ([]*models.Post, error) <span class="cov8" title="1">{
+        cursor, err := r.Posts.Find(ctx, bson.D{{
+                Key: "author.username", Value: username}}, options.Find().
+                SetSort(bson.D{{Key: "score", Value: -1}}))
+
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("find post: %w", err)
+        }</span>
+        <span class="cov8" title="1">defer cursor.Close(ctx)
+
+        posts := []*models.Post{}
+
+        if err := cursor.All(ctx, &amp;posts); err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("cursor all posts: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">if err := r.AddCommentsToPost(ctx, posts); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return posts, nil</span>
+}
+
+func (r *PostMongoDB) AddCommentsToPost(ctx context.Context, posts []*models.Post) error <span class="cov8" title="1">{
+        for _, post := range posts </span><span class="cov8" title="1">{
+                comments, err := r.GetPostCom(ctx, post.ID)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("add commets: %w", err)
+                }</span>
+                <span class="cov8" title="1">post.Comments = comments</span>
+        }
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package postmongo
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "math"
+        "redditclone/internal/models"
+        "slices"
+
+        "go.mongodb.org/mongo-driver/bson"
+        "go.mongodb.org/mongo-driver/bson/primitive"
+        "go.mongodb.org/mongo-driver/mongo"
+)
+
+func (r *PostMongoDB) ChangeVote(ctx context.Context, postID primitive.ObjectID,
+        vote *models.Vote) (*models.Post, error) <span class="cov8" title="1">{
+
+        var post models.Post
+        if err := r.Posts.FindOne(ctx, bson.M{"_id": postID}).Decode(&amp;post); err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, mongo.ErrNoDocuments) </span><span class="cov8" title="1">{
+                        return nil, models.ErrPostNotFound
+                }</span>
+                <span class="cov8" title="1">return nil, fmt.Errorf("find post: %w", err)</span>
+        }
+
+        <span class="cov8" title="1">found := false
+        for i, v := range post.Votes </span><span class="cov8" title="1">{
+                if v.UserID == vote.UserID </span><span class="cov8" title="1">{
+                        post.Score -= v.Vote
+                        post.Votes[i].Vote = vote.Vote
+                        found = true
+                        break</span>
+                }
+        }
+        <span class="cov8" title="1">if !found </span><span class="cov8" title="1">{
+                post.Votes = append(post.Votes, &amp;models.Vote{
+                        UserID: vote.UserID,
+                        Vote:   vote.Vote,
+                })
+        }</span>
+        <span class="cov8" title="1">post.Score += vote.Vote
+        post.UpvotePercentage = CalculateUpvotePercentage(post.Votes)
+
+        update := bson.M{"$set": bson.M{
+                "votes":            post.Votes,
+                "score":            post.Score,
+                "upvotePercentage": post.UpvotePercentage,
+        }}
+
+        if _, err := r.Posts.UpdateOne(ctx, bson.M{"_id": postID}, update); err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("update vote: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">comments, err := r.GetPostCom(ctx, postID)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">post.Comments = comments
+
+        return &amp;post, nil</span>
+}
+
+func (r *PostMongoDB) UnVote(ctx context.Context, postID primitive.ObjectID,
+        userID string) (*models.Post, error) <span class="cov8" title="1">{
+
+        var post models.Post
+        if err := r.Posts.FindOne(ctx, bson.M{"_id": postID}).Decode(&amp;post); err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, mongo.ErrNoDocuments) </span><span class="cov8" title="1">{
+                        return nil, models.ErrPostNotFound
+                }</span>
+                <span class="cov8" title="1">return nil, fmt.Errorf("find post: %w", err)</span>
+        }
+
+        <span class="cov8" title="1">for i, v := range post.Votes </span><span class="cov8" title="1">{
+                if v.UserID == userID </span><span class="cov8" title="1">{
+                        post.Score -= v.Vote
+                        post.Votes = slices.Delete(post.Votes, i, i+1)
+                        break</span>
+                }
+        }
+        <span class="cov8" title="1">post.UpvotePercentage = CalculateUpvotePercentage(post.Votes)
+
+        update := bson.M{"$set": bson.M{
+                "votes":            post.Votes,
+                "score":            post.Score,
+                "upvotePercentage": post.UpvotePercentage,
+        }}
+        if _, err := r.Posts.UpdateOne(ctx, bson.M{"_id": postID}, update); err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("update unvote: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">comments, err := r.GetPostCom(ctx, postID)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">post.Comments = comments
+
+        return &amp;post, nil</span>
+}
+
+func CalculateUpvotePercentage(votes []*models.Vote) int <span class="cov8" title="1">{
+        var up int
+        total := len(votes)
+        if total == 0 </span><span class="cov8" title="1">{
+                return 0
+        }</span>
+        <span class="cov8" title="1">for _, v := range votes </span><span class="cov8" title="1">{
+                if v.Vote &gt; 0 </span><span class="cov8" title="1">{
+                        up++
+                }</span>
+        }
+        <span class="cov8" title="1">return int(math.Round(float64(up * 100 / total)))</span>
+}
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package usersmysql
+
+import (
+        "context"
+        "database/sql"
+        "errors"
+        "log/slog"
+        "redditclone/internal/models"
+)
+
+type UsersMysqlRepo struct {
+        DB *sql.DB
+}
+
+func NewUsersMysqlRepo(db *sql.DB) *UsersMysqlRepo <span class="cov8" title="1">{
+        return &amp;UsersMysqlRepo{DB: db}
+}</span>
+
+func (r *UsersMysqlRepo) CreateUser(ctx context.Context, u *models.User) error <span class="cov8" title="1">{
+
+        const check = `SELECT 1 FROM users WHERE username = ? LIMIT 1;`
+        var exists int
+        err := r.DB.QueryRowContext(ctx, check, u.Username).Scan(&amp;exists)
+        if err != nil &amp;&amp; !errors.Is(err, sql.ErrNoRows) </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">if exists == 1 </span><span class="cov8" title="1">{
+                return models.ErrUserExists
+        }</span>
+
+        <span class="cov8" title="1">const query = `INSERT INTO users (id, username, password_hash)
+        VALUES (?, ?, ?);`
+
+        _, err = r.DB.ExecContext(ctx, query, u.ID, u.Username, u.PasswordHash)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (r *UsersMysqlRepo) GetUser(ctx context.Context, username string) (*models.User, error) <span class="cov8" title="1">{
+        const query = `SELECT id, password_hash FROM users WHERE username = ?;`
+
+        var user = models.User{Username: username}
+        err := r.DB.QueryRowContext(ctx, query, username).Scan(&amp;user.ID, &amp;user.PasswordHash)
+        if err == sql.ErrNoRows </span><span class="cov8" title="1">{
+                slog.Error("user not found", slog.String("username", username))
+                return nil, models.ErrUserNotFound
+        }</span>
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return &amp;user, nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

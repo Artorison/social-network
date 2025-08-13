@@ -1,0 +1,18 @@
+services:
+  mysql:
+    image: mysql:8
+    command: --mysql-native-password=ON
+    environment:
+      MYSQL_ROOT_PASSWORD: "love"
+      MYSQL_DATABASE: golang
+    ports:
+      - '3306:3306'
+    volumes:
+      - './_sql/:/docker-entrypoint-initdb.d/'
+
+  mongodb:
+   image: 'mongo:5'
+   environment:
+     - MONGO_INITDB_DATABASE=coursera
+   ports:
+     - '27017:27017'
