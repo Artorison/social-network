@@ -11,7 +11,7 @@ USERS_HANDLER_MOCKS := internal/handlers/users/users_handler_mocks.go
 .PHONY: start build run up down lint tests cover
 
 start: up
-	docker compose up -d --build
+	docker compose up -d
 
 stop:
 	docker compose down
