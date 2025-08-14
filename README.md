@@ -1,5 +1,8 @@
 
 # Social Network
+[![Coverage](https://github.com/Artorison/social-network/wiki/coverage.svg)](https://raw.githack.com/wiki/Artorison/social-network/coverage.html)
+
+
 
 Соцсеть с фронтендом: регистрация/логин, публикация постов с категориями, комментарии и голосование. Бэкенд - на `GO`. Авторизация - `JWT`. БД для пользователей и сессий - `MySQL`.Для постов и комментариев - `MongoDB`.
 

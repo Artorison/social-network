@@ -38,3 +38,6 @@ install_mocks:
 generate_mocks: install_mocks
 	mockgen -source=$(POSTS_HANDLER_SRC) -destination=$(POSTS_HANDLER_MOCKS) -package=posts
 	mockgen -source=$(USERS_HANDLER_SRC) -destination=$(USERS_HANDLER_MOCKS) -package=users
+
+cover_ci:
+	go test $(TESTS) -covermode=atomic -coverprofile=coverage.out
