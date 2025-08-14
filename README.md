@@ -55,10 +55,9 @@ make stop
 
 Регистрация и логин с валидацией:
 
-![Screen 3](images/3.png)
-![Screen 5](images/5.png)
-![Screen 4](images/4.png)
-![Screen 6](images/6.png)
+![Screen 10](images/10.png)
+
+![Screen 11](images/11.png)
 
 Возможность создавать посты по категориям и типам, удалять посты, ставить лайки/дизлайки постам, оставлять и удалять комментарии:
 ![Screen 7](images/7.png)
